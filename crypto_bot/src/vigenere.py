@@ -1,13 +1,24 @@
-def encrypt_vigenere_code(text: str, shift: int) -> str:
-    print(373)
+def shift_key(key: str, text: str) -> str:
+    # дз убрать лишние символы из ключа , проверить ключ на 0 символов , проверить если будут только специальные символы
+
+    # убираем лишние символы из текста
+    text_without_digits = []
+    for char in text:
+        if char.isalpha():
+            text_without_digits.append(char)
+    text = "".join(text_without_digits)
+    # подбираем правильную длину ключа
+    if len(key) < len(text):
+        extension = len(text) - len(key)
+        new_key = key + key[:extension]
+    if len(key) > len(text):
+        new_key = key[: len(text)]
+    return new_key
 
 
-def decrypt_vigenere_code(text: str, shift: int) -> str:
-    pass
+def encrypt_vigenere_code(text: str, key: str) -> str:
+    english_alphabet = "abcdefghijklmnopqrstvupwxyz"
+    russia_alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 
 
-print(encrypt_vigenere_code("djuyd", 77))
-
-if __name__ == "__main__":
-    encrypt_vigenere_code()
-    decrypt_vigenere_code()
+print(shift_key("LEMONFkefjohfeo", "AAA3AAA"))
