@@ -36,8 +36,7 @@ def encrypt_vigenere_code(text: str, key: str) -> str:
         elif char in russia_alphabet:
             index_key.append(russia_alphabet.index(char))
         else:
-            # позже необходимо сделать исключение
-            return "бот работает только с русскими и английскими символами"
+            print("Бот работает только с русскими и английскими символами")
 
     for char in text.lower():
         if char in english_alphabet:
@@ -47,18 +46,21 @@ def encrypt_vigenere_code(text: str, key: str) -> str:
         elif not char.isalpha():
             index_text.append(char)
         else:
-            # позже необходимо сделать исключение
-            return "бот работает только с русскими и английскими символами"
-    # переделать код и доюавить алфавиты ( узнать какой алфавит) и брать остаток от деления алфавита
-    for char in range(len(index_text)):
-        if isinstance(index_text[char], str):
-            answer.append(index_text[char])
+            print("Бот работает только с русскими и английскими символами")
+
+    if any(char in english_alphabet for char in text.lower()):
+        alphabet = english_alphabet
+    else:
+        alphabet = russia_alphabet
+    key_position = 0
+    for char in index_text:
+        if isinstance(char, str):
+            answer.append(char)
         else:
-            if char >= len(index_key):
-                break
-            else:
-                answer.append(english_alphabet[index_text[char] + index_key[char]])
-    print(answer)
+            new_index = (char + index_key[key_position]) % len(alphabet)
+            answer.append(alphabet[new_index])
+            key_position += 1
+    return "".join(answer)
 
 
 print(encrypt_vigenere_code("AAA3AAA", "LEMONFkefjohfeo"))
