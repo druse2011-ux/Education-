@@ -1,4 +1,6 @@
-class Caesar:
+from src.cipher import Cipher
+
+class Caesar(Cipher):
     def __init__(self, shift: int):
         self.shift = shift
         self.english_alphabet = "abcdefghijklmnopqrstvupwxyz"
