@@ -34,12 +34,12 @@ class Caesar(Cipher):
                 "Ошибка ввода. Бот принимает текст только на английском или русском языке!"
             )
 
-    def encrypt_caesar_code(self, text: str) -> str:
+    def encrypt(self, text: str) -> str:
         return self._shift_char(text)
 
-    def decrypt_caesar_code(self, text: str) -> str:
+    def decrypt(self, text: str) -> str:
         self.shift = -self.shift
-        result = self.encrypt_caesar_code(text)
+        result = self.encrypt(text)
         self.shift = -self.shift
         return result
 
@@ -47,6 +47,6 @@ class Caesar(Cipher):
 if __name__ == "__main__":
     class_caesar = Caesar(5)
     print(class_caesar)
-    print(class_caesar.encrypt_caesar_code("привет!ООАРПРКНРЕНО"))
-    print(class_caesar.decrypt_caesar_code("фхнзкч!УУЕХФХПТХКТУ"))
+    print(class_caesar.encrypt("привет!ООАРПРКНРЕНО"))
+    print(class_caesar.decrypt("фхнзкч!УУЕХФХПТХКТУ"))
 # дз: доделать decrypt, вынести алфавиты в __init__( в аргумент не добавляем)

@@ -1,78 +1,274 @@
+"""
+vigenere.py
+
+Класс шифра Виженера
+для подключения к GUI приложению.
+
+Интерфейс такой же как у CaesarCipher:
+
+encrypt()
+decrypt()
+
+Это важно, потому что UI
+должен одинаково работать
+с разными алгоритмами.
+"""
 from src.cipher import Cipher
+# =========================================================
+# АЛФАВИТЫ
+# =========================================================
 
-class Vignure(Cipher):
-    def __init__(self, shift: int):
-        self.shift = shift
-        self.english_alphabet = "abcdefghijklmnopqrstvupwxyz"
-        self.russia_alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-    
-    def clean_string_key_and_text(value: str) -> str:
-        # убирает все небуквенные символы
-        return "".join([char for char in value if char.isalpha()])
+# Английский алфавит
+EN_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-
-    def extand_key(key: str, text: str) -> str:
-        # проверяет правильное ли количество символов у ключа и расширяет при необходимости
-        if len(key) == 0:
-            # позже необходимо сделать исключение
-            return "Ключ состоит из 0 символов, необходимо его заменить"
-        if len(key) < len(text):
-            extension = len(text) - len(key)
-            new_key = key + key[:extension]
-        if len(key) > len(text):
-            new_key = key[: len(text)]
-        return new_key
+# Русский алфавит
+RU_ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 
 
-    def shift_key(key: str, text: str) -> str:
-        # тут хранится готовый ключ
-        key = self.clean_string_key_and_text(key)
-        text = self.clean_string_key_and_text(text)
-        return self.extand_key(key, text)
+# =========================================================
+# КЛАСС ШИФРА ВИЖЕНЕРА
+# =========================================================
 
+class VigenereCipher(Cipher):
 
-    def _encrypt_vigenere_code(text: str, key: str) -> str:
-        english_alphabet = "abcdefghijklmnopqrstvupwxyz"
-        russia_alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-        new_key = self.shift_key(key, text)
-        index_key = []
-        index_text = []
-        answer = []
-        for char in new_key.lower():
-            if char in english_alphabet:
-                index_key.append(english_alphabet.index(char))
-            elif char in russia_alphabet:
-                index_key.append(russia_alphabet.index(char))
-            else:
-                print("Бот работает только с русскими и английскими символами")
+    """
+    Шифр Виженера.
 
-        for char in text.lower():
-            if char in english_alphabet:
-                index_text.append(english_alphabet.index(char))
-            elif char in russia_alphabet:
-                index_text.append(russia_alphabet.index(char))
-            elif not char.isalpha():
-                index_text.append(char)
-            else:
-                print("Бот работает только с русскими и английскими символами")
+    Работает через ключ:
 
-        if any(char in english_alphabet for char in text.lower()):
-            alphabet = english_alphabet
+    ТЕКСТ + КЛЮЧ
+
+    Пример:
+
+    TEXT:
+    ATTACKATDAWN
+
+    KEY:
+    LEMONLEMONLE
+
+    Каждая буква текста
+    сдвигается на значение
+    буквы ключа.
+    """
+
+    def __init__(self, key: str):
+
+        # Проверяем что ключ не пустой
+
+        if not key:
+            raise ValueError(
+                "Ключ не может быть пустым"
+            )
+
+        # Сохраняем ключ
+        self.key = key.upper()
+
+    # =====================================================
+    # ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+    # =====================================================
+
+    def _get_alphabet(self, text: str):
+
+        """
+        Определяем какой алфавит использовать.
+
+        Если нашли русскую букву →
+        используем русский алфавит.
+
+        Иначе английский.
+        """
+
+        for ch in text.upper():
+
+            if ch in RU_ALPHABET:
+                return RU_ALPHABET
+
+        return EN_ALPHABET
+
+    def _validate_key(self, alphabet):
+
+        """
+        Проверяем что ключ
+        содержит только символы
+        выбранного алфавита.
+        """
+
+        for ch in self.key:
+
+            if ch not in alphabet:
+
+                raise ValueError(
+                    f"Недопустимый символ в ключе: {ch}"
+                )
+
+    def _shift_char(
+        self,
+        text_char,
+        key_char,
+        alphabet,
+        encrypt=True
+    ):
+
+        """
+        Шифрование ОДНОГО символа.
+
+        Это инкапсуляция:
+
+        encrypt() не знает
+        как двигаются буквы.
+
+        Он просто вызывает:
+
+        _shift_char()
+        """
+
+        alphabet_size = len(alphabet)
+
+        # Индекс буквы текста
+        text_index = alphabet.index(
+            text_char
+        )
+
+        # Индекс буквы ключа
+        key_index = alphabet.index(
+            key_char
+        )
+
+        # -----------------------------------------
+        # Шифрование
+        # -----------------------------------------
+
+        if encrypt:
+
+            new_index = (
+                text_index + key_index
+            ) % alphabet_size
+
+        # -----------------------------------------
+        # Дешифрование
+        # -----------------------------------------
+
         else:
-            alphabet = russia_alphabet
-        key_position = 0
-        for char in index_text:
-            if isinstance(char, str):
-                answer.append(char)
+
+            new_index = (
+                text_index - key_index
+            ) % alphabet_size
+
+        return alphabet[new_index]
+
+    # =====================================================
+    # ОСНОВНАЯ ЛОГИКА
+    # =====================================================
+
+    def _process(
+        self,
+        text,
+        encrypt=True
+    ):
+
+        """
+        Общая логика:
+
+        encrypt()
+        decrypt()
+
+        используют один и тот же метод.
+        """
+
+        alphabet = self._get_alphabet(
+            text
+        )
+
+        # Проверяем ключ
+        self._validate_key(alphabet)
+
+        text = text.upper()
+
+        result = []
+
+        # Индекс ключа
+        key_index = 0
+
+        for ch in text:
+
+            # Если символ буква
+            if ch in alphabet:
+
+                # Зацикливаем ключ:
+
+                # KEYKEYKEYKEY
+
+                current_key_char = self.key[
+                    key_index % len(self.key)
+                ]
+
+                result.append(
+
+                    self._shift_char(
+                        ch,
+                        current_key_char,
+                        alphabet,
+                        encrypt
+                    )
+                )
+
+                # Двигаем ключ
+                # только на буквах
+
+                key_index += 1
+
             else:
-                new_index = (char + index_key[key_position]) % len(alphabet)
-                answer.append(alphabet[new_index])
-                key_position += 1
-        return "".join(answer)
+
+                # Пробелы и символы
+                # не шифруем
+
+                result.append(ch)
+
+        return "".join(result)
+
+    # =====================================================
+    # PUBLIC API
+    # =====================================================
+
+    def encrypt(self, text):
+
+        """
+        Публичный метод шифрования.
+        """
+
+        return self._process(
+            text,
+            encrypt=True
+        )
+
+    def decrypt(self, text):
+
+        """
+        Публичный метод дешифрования.
+        """
+
+        return self._process(
+            text,
+            encrypt=False
+        )
+
+
+# =========================================================
+# ТЕСТ
+# =========================================================
 
 if __name__ == "__main__":
-    class_vignure = Vignure(5)
-    print(class_vignure)
-    print(class_vignure.encrypt_vignure_code("привет!ООАРПРКНРЕНО"))
-    print(class_vignure.decrypt_vignure_code("фхнзкч!УУЕХФХПТХКТУ"))
 
+    cipher = VigenereCipher("КЛЮЧ")
+
+    encrypted = cipher.encrypt(
+        "ПРИВЕТ МИР"
+    )
+
+    decrypted = cipher.decrypt(
+        encrypted
+    )
+
+    print("Encrypted:", encrypted)
+
+    print("Decrypted:", decrypted)
